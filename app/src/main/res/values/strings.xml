@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ClarIAr</string>
+    <string name="accessibility_service_description">My Accessibility Service</string>
 </resources>
