@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/fc735a66-03ed-41f2-b9ea-d53e4bf1b496)
+![image](https://github.com/user-attachments/assets/815a6932-89bd-42b0-a0a5-32ef5da0cd48)
 # ClarIAr Project
 Project for Tril Lab's Hackathon
 
