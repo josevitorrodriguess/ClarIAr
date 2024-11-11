@@ -12,7 +12,8 @@ Project for Tril Lab's Hackathon
 
 ## What is it about?
 
-ClarIAr is a feature integrated with the TalkBack tool in Android smartphones wich implements Artificial Inteligence to describe images on the screen with more accuracy and details.
+ClarIAr is a feature feature created to upgrade the functionality of TalkBack, improving the experience for visually impaired users in Android smartphones. 
+It implements Artificial Inteligence to describe images on the screen with more accuracy and details.
 In other words, ClarIAr is a acessibility resource created to enable blind people to use their phones in a more efficient way!
 
 ## How does it works?
