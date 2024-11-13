@@ -17,7 +17,7 @@ class MyApplication : Application() {
     }
 
     private fun createNotificationChannel() {
-        // Cria o NotificationChannel apenas no API 26+ (Android O e superior)
+        // Creates NotificationChannel only on API 26+ (Android O and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Permissão de Captura de Tela"
             val descriptionText = "Solicita permissão para captura de tela"
