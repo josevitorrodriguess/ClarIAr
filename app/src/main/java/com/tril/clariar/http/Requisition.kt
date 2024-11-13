@@ -25,7 +25,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
 
         return try {
 
-            convertBitMapToBase64(image)
+            val imageBase64 =  convertBitMapToBase64(image)
             // Configura o método e os cabeçalhos da requisição
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
@@ -46,7 +46,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
                                 {
                                     "type": "image_url",
                                     "image_url": {
-                                        "url": "data:image/jpeg;base64,$image"
+                                        "url": "data:image/jpeg;base64,$imageBase64"
                                     }
                                 }
                             ]
