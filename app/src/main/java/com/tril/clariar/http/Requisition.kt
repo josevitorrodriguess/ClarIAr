@@ -2,6 +2,7 @@ package com.tril.clariar.http
 
 import android.graphics.Bitmap
 import android.util.Base64
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
@@ -16,6 +17,14 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
         image.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         val bytes = byteArrayOutputStream.toByteArray()
         return Base64.encodeToString(bytes, Base64.DEFAULT)
+    }
+
+    fun extractContent(jsonString: String): String? {
+        val jsonObject = JSONObject(jsonString)
+        val choicesArray = jsonObject.getJSONArray("choices")
+        val firstChoice = choicesArray.getJSONObject(0)
+        val messageObject = firstChoice.getJSONObject("message")
+        return messageObject.getString("content")
     }
 
 
@@ -68,18 +77,19 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
             outputStream.close()
 
             // Lê a resposta
-            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+            val response: String = if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader(InputStreamReader(connection.inputStream)).use {
                     it.readText()
                 }
             } else {
-                // Lê a mensagem de erro para entender melhor o problema
                 BufferedReader(InputStreamReader(connection.errorStream)).use {
                     val errorResponse = it.readText()
                     println("Erro na resposta: $errorResponse")
-                    null
+                    return null
                 }
             }
+
+            return extractContent(response)
         } finally {
             connection.disconnect()
         }
