@@ -25,15 +25,21 @@ class PermissionActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK && data != null) {
-                // Usuário concedeu permissão; iniciar o serviço de captura de tela
-                val intent = Intent(this, ScreenCaptureService::class.java)
-                intent.putExtra("resultCode", resultCode)
-                intent.putExtra("data", data)
-                startForegroundService(intent)
+                // Start the service in the foreground
+                val serviceIntent = Intent(this, ScreenCaptureService::class.java)
+                serviceIntent.putExtra("resultCode", resultCode)
+                serviceIntent.putExtra("data", data)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(serviceIntent)
+                } else {
+                    startService(serviceIntent)
+                }
             } else {
-                // Permissão negada; lidar com isso aqui
+                // Permission denied; handle it here
+                // Optionally display a message to the user
             }
-            finish() // Fechar a activity
+            finish() // Close the activity
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
