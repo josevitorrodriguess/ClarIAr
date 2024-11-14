@@ -63,3 +63,5 @@ crashlytics.properties
 # Outros
 *.bak
 *.tmp
+
+app/src/main/res/values/secrets.xml

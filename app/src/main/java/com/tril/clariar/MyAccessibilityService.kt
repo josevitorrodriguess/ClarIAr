@@ -31,6 +31,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.tril.clariar.http.GroqApiRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -255,27 +260,46 @@ class MyAccessibilityService : AccessibilityService() {
                         // Store the bitmap in ImageStorage
                         ImageStorage.capturedBitmap = croppedBitmap
 
-                        // Iniciar uma corrotina para processar a imagem e obter o texto descritivo
-//                        CoroutineScope(Dispatchers.IO).launch {
-//                            try {
-//                                // Converter o bitmap para um formato adequado (por exemplo, array de bytes)
-//                                val imageData = convertBitmapToByteArray(croppedBitmap)
-//
-//                                // Enviar a imagem para o modelo LLM e obter o texto descritivo
-//                                val descriptiveText = sendImageToLLMModel(imageData)
-//
-//                                // Passar o texto para o mecanismo TTS na thread principal
-//                                withContext(Dispatchers.Main) {
-//                                    speakText(descriptiveText)
-//                                }
-//                            } catch (e: Exception) {
-//                                e.printStackTrace()
-//                                // Lidar com erros apropriadamente
-//                            }
-//                        }
+                        // Starts a Coroutine to send the image and get the descriptive text
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val apiKey = getString(R.string.api_key)
 
-                        // After use, clear the bitmap
-                        //ImageStorage.clearCapturedBitmap()
+                                // Creates a GroqApiRequest instance with the API key and the captured image
+                                val groqApiRequest = GroqApiRequest(apiKey, croppedBitmap)
+
+                                // Send the image to the LLM model and get the descriptive text
+                                val descriptiveText = groqApiRequest.sendChatRequest()
+
+                                // Checks if descriptiveText is not null
+                                if (descriptiveText != null) {
+                                    // Registers the descriptive text
+                                    val cleanedText = descriptiveText.replace("\\s+".toRegex(), " ").trim()
+                                    Log.d("MyAccessibilityService", "Texto Descritivo: $cleanedText")
+
+                                    // Optionally displays descriptive text in a Toast on the main thread (TEST)
+//                                    withContext(Dispatchers.Main) {
+//                                        Toast.makeText(applicationContext, cleanedText, Toast.LENGTH_LONG).show()
+//                                    }
+                                } else {
+                                    // handles the case when descriptiveText is null
+                                    Log.e("MyAccessibilityService", "Falha ao obter texto descritivo do modelo LLM")
+
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(applicationContext, "Falha ao obter descrição da imagem.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                // Handle exceptions appropriately
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(applicationContext, "Ocorreu um erro.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+
+                        // After use, clean the bitmap if necessary.
+                        // ImageStorage.clearCapturedBitmap()
 
                         Log.d("MyAccessibilityService", "Bitmap stored in ImageStorage")
 
@@ -288,12 +312,19 @@ class MyAccessibilityService : AccessibilityService() {
                         e.printStackTrace()
                     } finally {
                         image.close()
+                        reader.close()
+                        imageReader.close()
                         imageReader.setOnImageAvailableListener(null, null)
                         virtualDisplay.release()
-                        mediaProjection?.stop()
                     }
-                }
-            }, null)
+
+                } else {
+                // If there is no image, still release the resources
+                imageReader.setOnImageAvailableListener(null, null)
+                imageReader.close()
+                virtualDisplay.release()
+            }
+            }, Handler(Looper.getMainLooper()))
 
         } catch (e: Exception) {
             e.printStackTrace()

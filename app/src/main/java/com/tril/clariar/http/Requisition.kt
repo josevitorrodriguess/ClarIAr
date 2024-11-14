@@ -2,6 +2,7 @@ package com.tril.clariar.http
 
 import android.graphics.Bitmap
 import android.util.Base64
+import android.util.Log
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
@@ -16,7 +17,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
         val byteArrayOutputStream = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         val bytes = byteArrayOutputStream.toByteArray()
-        return Base64.encodeToString(bytes, Base64.DEFAULT)
+        return Base64.encodeToString(bytes, Base64.NO_WRAP)
     }
 
     fun extractContent(jsonString: String): String? {
@@ -50,20 +51,20 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Descreva essa imagem para um deficiente visual. Seja objetivo, direto e humano. Não se apresente!"
+                                    "text": "Descreva brevemente essta imagem para um deficiente visual em no máximo 5 frases. Seja objetivo, direto e humano. Foque nos elementos principais sem se prolongar. Não se apresente!"
                                 },
                                 {
                                     "type": "image_url",
                                     "image_url": {
-                                        "url": "data:image/jpeg;base64,$imageBase64"
+                                        "url": "data:image/png;base64,$imageBase64"
                                     }
                                 }
                             ]
                         }
                     ],
                     "model": "llama-3.2-90b-vision-preview",
-                    "temperature": 1,
-                    "max_tokens": 1024,
+                    "temperature": 0.5,
+                    "max_tokens": 200,
                     "top_p": 1,
                     "stream": false,
                     "stop": null
@@ -72,7 +73,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
 
             // Envia o corpo da requisição
             val outputStream: OutputStream = connection.outputStream
-            outputStream.write(jsonBody.toByteArray())
+            outputStream.write(jsonBody.toByteArray(Charsets.UTF_8))
             outputStream.flush()
             outputStream.close()
 
@@ -84,7 +85,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
             } else {
                 BufferedReader(InputStreamReader(connection.errorStream)).use {
                     val errorResponse = it.readText()
-                    println("Erro na resposta: $errorResponse")
+                    Log.e("GroqApiRequest", "Erro na resposta: $errorResponse")
                     return null
                 }
             }
