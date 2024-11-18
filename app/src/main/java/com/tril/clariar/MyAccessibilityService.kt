@@ -15,10 +15,8 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.media.ImageReader
-import android.media.MediaScannerConnection
 import android.media.projection.MediaProjection
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -27,6 +25,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -36,9 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -57,8 +54,14 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+    private lateinit var ttsHandler: TextToSpeechHandler
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        // Initialize the TextToSpeechHandler
+        ttsHandler = TextToSpeechHandler(this)
+
         // Register the receiver
         val filter = IntentFilter("com.tril.clariar.PERMISSION_GRANTED")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 or higher
@@ -68,7 +71,7 @@ class MyAccessibilityService : AccessibilityService() {
                 Context.RECEIVER_NOT_EXPORTED
             )
         } else {
-            registerReceiver(permissionGrantedReceiver, filter)
+            registerReceiver(permissionGrantedReceiver, filter, RECEIVER_NOT_EXPORTED)
         }
 
         // Create the notification channel
@@ -76,10 +79,13 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        // Disable TextToSpeechHandler to free up resources
+        ttsHandler.shutdown()
         super.onDestroy()
-        // Unregister the receiver
+        // Unregister any receiver
         unregisterReceiver(permissionGrantedReceiver)
     }
+
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -232,6 +238,7 @@ class MyAccessibilityService : AccessibilityService() {
             )
 
             imageReader.setOnImageAvailableListener({ reader ->
+                Log.d("MyAccessibilityService", "OnImageAvailableListener chamado")
                 val image = reader.acquireLatestImage()
                 if (image != null) {
                     try {
@@ -277,10 +284,11 @@ class MyAccessibilityService : AccessibilityService() {
                                     val cleanedText = descriptiveText.replace("\\s+".toRegex(), " ").trim()
                                     Log.d("MyAccessibilityService", "Texto Descritivo: $cleanedText")
 
-                                    // Optionally displays descriptive text in a Toast on the main thread (TEST)
-//                                    withContext(Dispatchers.Main) {
-//                                        Toast.makeText(applicationContext, cleanedText, Toast.LENGTH_LONG).show()
-//                                    }
+
+                                    withContext(Dispatchers.Main) {
+                                        ttsHandler.speak(cleanedText)
+                                    }
+
                                 } else {
                                     // handles the case when descriptiveText is null
                                     Log.e("MyAccessibilityService", "Falha ao obter texto descritivo do modelo LLM")
@@ -309,6 +317,7 @@ class MyAccessibilityService : AccessibilityService() {
                         // Do not recycle the croppedBitmap here as it needs to be accessed later
 
                     } catch (e: Exception) {
+                        Log.e("MyAccessibilityService", "Erro durante o processamento da imagem", e)
                         e.printStackTrace()
                     } finally {
                         image.close()
