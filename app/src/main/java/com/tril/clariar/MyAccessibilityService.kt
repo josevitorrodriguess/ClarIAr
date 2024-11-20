@@ -102,10 +102,18 @@ class MyAccessibilityService : AccessibilityService() {
                 Log.d("MyAccessibilityService", "Clicked view class: $className")
                 if (className == "android.widget.ImageView" || className == "android.widget.Image") {
                     Log.d("MyAccessibilityService", "ImageView ou Image clicked.")
-                    val rect = Rect()
-                    source.getBoundsInScreen(rect)
-                    // Proceed to capture the screen and crop the image
-                    captureAndProcessImage(rect)
+
+                    // Check if TTS is speaking
+                    if (ttsHandler.isSpeaking()) {
+                        // Interrupts TTS
+                        ttsHandler.stop()
+                        Log.d("MyAccessibilityService", "TTS interrompido pelo usuário.")
+                    } else {
+                        // Proceed to capture and process the image
+                        val rect = Rect()
+                        source.getBoundsInScreen(rect)
+                        captureAndProcessImage(rect)
+                    }
                 } else {
                     Log.d("MyAccessibilityService", "Event is not from an ImageView or Image")
                 }

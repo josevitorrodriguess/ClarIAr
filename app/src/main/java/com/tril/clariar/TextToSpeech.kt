@@ -10,13 +10,13 @@ class TextToSpeechHandler(context: Context) : TextToSpeech.OnInitListener {
     private var tts: TextToSpeech? = null
 
     init {
-        // Inicializa o TextToSpeech com o contexto e o listener
+        // Initialize TextToSpeech with context and listener
         tts = TextToSpeech(context, this)
     }
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            // Define o idioma para português do Brasil
+            // Set the language to Brazilian Portuguese
             val result = tts?.setLanguage(Locale("pt", "BR"))
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "Linguagem não suportada")
@@ -27,36 +27,51 @@ class TextToSpeechHandler(context: Context) : TextToSpeech.OnInitListener {
     }
 
     /**
-     * Fala o texto fornecido.
+     * Speak the text provided.
      *
-     * @param text Texto a ser falado.
+     * @param text Text to be spoken.
      */
     fun speak(text: String) {
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
+    /**
+     * Check if TTS is speaking.
+     *
+     * @return True if TTS is speaking, false otherwise.
+     */
+    fun isSpeaking(): Boolean {
+        return tts?.isSpeaking ?: false
+    }
+
 
     /**
-     * Libera os recursos do TextToSpeech.
+     * Unlock TextToSpeech resources.
      */
     fun shutdown() {
         tts?.stop()
         tts?.shutdown()
     }
+
+    //Stops the current speech, keeping the initialized TTS for later use
+    fun stop() {
+        tts?.stop()
+    }
 }
 
-/*Como usar:
-inicializar a classe em um contexto:
+/* How to use:
+
+initialize the class in a context
     val ttsHandler = TextToSpeechHandler(this)
 
-chamar o método speak
-    ttsHandler.speak("Olá, mundo!")
+    call the speak method
+    ttsHandler.speak("Hello, world!")
 
-liberar os recursos do TextToSpeech no final do ciclo
+    release the TextToSpeech resources at the end of the loop
 
 ex:
     override fun onDestroy() {
-        ttsHandler.shutdown()
-        super.onDestroy()
-    }
+    ttsHandler.shutdown()
+    super.onDestroy()
+}
 
 */
