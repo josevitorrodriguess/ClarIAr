@@ -255,15 +255,40 @@ class MyAccessibilityService : AccessibilityService() {
                         )
                         bitmap.copyPixelsFromBuffer(buffer)
 
+                        // Retrieve the dimensions of the bitmap
+                        val bitmapWidth = bitmap.width
+                        val bitmapHeight = bitmap.height
+
+                        // Ensure rect.left and rect.top are within the bitmap bounds
+                        val x = rect.left.coerceAtLeast(0)
+                        val y = rect.top.coerceAtLeast(0)
+
+                        // Calculate the maximum possible width and height starting from (x, y)
+                        val maxWidth = bitmapWidth - x
+                        val maxHeight = bitmapHeight - y
+
+                        // Adjust rect.width() and rect.height() if they exceed the bitmap bounds
+                        val width = rect.width().coerceAtMost(maxWidth)
+                        val height = rect.height().coerceAtMost(maxHeight)
+
+                        // Ensure width and height are positive
+                        if (width <= 0 || height <= 0) {
+                            // Handle the error case
+                            Log.e("BitmapCreation", "Invalid dimensions for bitmap cropping.")
+                            return@setOnImageAvailableListener
+                        }
+                        Log.d("BitmapParams", "Bitmap dimensions: width=${bitmapWidth}, height=${bitmapHeight}")
+                        Log.d("BitmapParams", "Crop parameters: x=$x, y=$y, width=$width, height=$height")
+
+
                         // Crop the bitmap to the bounds of the clicked view
                         val croppedBitmap = Bitmap.createBitmap(
                             bitmap,
-                            rect.left,
-                            rect.top,
-                            rect.width(),
-                            rect.height()
+                            x,
+                            y,
+                            width,
+                            height
                         )
-
                         // Store the bitmap in ImageStorage
                         ImageStorage.capturedBitmap = croppedBitmap
 
