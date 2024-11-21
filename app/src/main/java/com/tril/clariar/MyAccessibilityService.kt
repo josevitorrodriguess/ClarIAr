@@ -15,10 +15,8 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.media.ImageReader
-import android.media.MediaScannerConnection
 import android.media.projection.MediaProjection
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -27,6 +25,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -36,9 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -57,8 +54,14 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+    private lateinit var ttsHandler: TextToSpeechHandler
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        // Initialize the TextToSpeechHandler
+        ttsHandler = TextToSpeechHandler(this)
+
         // Register the receiver
         val filter = IntentFilter("com.tril.clariar.PERMISSION_GRANTED")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 or higher
@@ -68,7 +71,7 @@ class MyAccessibilityService : AccessibilityService() {
                 Context.RECEIVER_NOT_EXPORTED
             )
         } else {
-            registerReceiver(permissionGrantedReceiver, filter)
+            registerReceiver(permissionGrantedReceiver, filter, RECEIVER_NOT_EXPORTED)
         }
 
         // Create the notification channel
@@ -76,10 +79,13 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        // Disable TextToSpeechHandler to free up resources
+        ttsHandler.shutdown()
         super.onDestroy()
-        // Unregister the receiver
+        // Unregister any receiver
         unregisterReceiver(permissionGrantedReceiver)
     }
+
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -96,10 +102,18 @@ class MyAccessibilityService : AccessibilityService() {
                 Log.d("MyAccessibilityService", "Clicked view class: $className")
                 if (className == "android.widget.ImageView" || className == "android.widget.Image") {
                     Log.d("MyAccessibilityService", "ImageView ou Image clicked.")
-                    val rect = Rect()
-                    source.getBoundsInScreen(rect)
-                    // Proceed to capture the screen and crop the image
-                    captureAndProcessImage(rect)
+
+                    // Check if TTS is speaking
+                    if (ttsHandler.isSpeaking()) {
+                        // Interrupts TTS
+                        ttsHandler.stop()
+                        Log.d("MyAccessibilityService", "TTS interrompido pelo usuário.")
+                    } else {
+                        // Proceed to capture and process the image
+                        val rect = Rect()
+                        source.getBoundsInScreen(rect)
+                        captureAndProcessImage(rect)
+                    }
                 } else {
                     Log.d("MyAccessibilityService", "Event is not from an ImageView or Image")
                 }
@@ -232,6 +246,7 @@ class MyAccessibilityService : AccessibilityService() {
             )
 
             imageReader.setOnImageAvailableListener({ reader ->
+                Log.d("MyAccessibilityService", "OnImageAvailableListener chamado")
                 val image = reader.acquireLatestImage()
                 if (image != null) {
                     try {
@@ -248,15 +263,40 @@ class MyAccessibilityService : AccessibilityService() {
                         )
                         bitmap.copyPixelsFromBuffer(buffer)
 
+                        // Retrieve the dimensions of the bitmap
+                        val bitmapWidth = bitmap.width
+                        val bitmapHeight = bitmap.height
+
+                        // Ensure rect.left and rect.top are within the bitmap bounds
+                        val x = rect.left.coerceAtLeast(0)
+                        val y = rect.top.coerceAtLeast(0)
+
+                        // Calculate the maximum possible width and height starting from (x, y)
+                        val maxWidth = bitmapWidth - x
+                        val maxHeight = bitmapHeight - y
+
+                        // Adjust rect.width() and rect.height() if they exceed the bitmap bounds
+                        val width = rect.width().coerceAtMost(maxWidth)
+                        val height = rect.height().coerceAtMost(maxHeight)
+
+                        // Ensure width and height are positive
+                        if (width <= 0 || height <= 0) {
+                            // Handle the error case
+                            Log.e("BitmapCreation", "Invalid dimensions for bitmap cropping.")
+                            return@setOnImageAvailableListener
+                        }
+                        Log.d("BitmapParams", "Bitmap dimensions: width=${bitmapWidth}, height=${bitmapHeight}")
+                        Log.d("BitmapParams", "Crop parameters: x=$x, y=$y, width=$width, height=$height")
+
+
                         // Crop the bitmap to the bounds of the clicked view
                         val croppedBitmap = Bitmap.createBitmap(
                             bitmap,
-                            rect.left,
-                            rect.top,
-                            rect.width(),
-                            rect.height()
+                            x,
+                            y,
+                            width,
+                            height
                         )
-
                         // Store the bitmap in ImageStorage
                         ImageStorage.capturedBitmap = croppedBitmap
 
@@ -277,10 +317,11 @@ class MyAccessibilityService : AccessibilityService() {
                                     val cleanedText = descriptiveText.replace("\\s+".toRegex(), " ").trim()
                                     Log.d("MyAccessibilityService", "Texto Descritivo: $cleanedText")
 
-                                    // Optionally displays descriptive text in a Toast on the main thread (TEST)
-//                                    withContext(Dispatchers.Main) {
-//                                        Toast.makeText(applicationContext, cleanedText, Toast.LENGTH_LONG).show()
-//                                    }
+
+                                    withContext(Dispatchers.Main) {
+                                        ttsHandler.speak(cleanedText)
+                                    }
+
                                 } else {
                                     // handles the case when descriptiveText is null
                                     Log.e("MyAccessibilityService", "Falha ao obter texto descritivo do modelo LLM")
@@ -309,6 +350,7 @@ class MyAccessibilityService : AccessibilityService() {
                         // Do not recycle the croppedBitmap here as it needs to be accessed later
 
                     } catch (e: Exception) {
+                        Log.e("MyAccessibilityService", "Erro durante o processamento da imagem", e)
                         e.printStackTrace()
                     } finally {
                         image.close()
