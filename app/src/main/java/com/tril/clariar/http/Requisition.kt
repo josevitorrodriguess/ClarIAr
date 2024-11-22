@@ -20,7 +20,6 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
     fun processStreamLine(line: String): String? {
         val trimmedLine = line.trim()
         if (trimmedLine.isEmpty()) {
-            // Skip empty lines
             return null
         }
 
@@ -30,15 +29,12 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
             trimmedLine
         }
         if (jsonLine.isEmpty()) {
-            // Skip empty lines after stripping
             return null
         }
         if (jsonLine == "[DONE]") {
-            // Handle the end of the stream
-            // You can set a flag or simply return null
             return null
         }
-        // Check if jsonLine starts with '{' indicating a JSON object
+
         if (jsonLine.startsWith("{")) {
             try {
                 val jsonObject = JSONObject(jsonLine)
