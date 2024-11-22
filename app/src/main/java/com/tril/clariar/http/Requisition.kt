@@ -18,19 +18,50 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
     }
 
     fun processStreamLine(line: String): String? {
-        try {
-            // Verifica se o chunk contém conteúdo válido
-            val jsonObject = JSONObject(line)
-            if (jsonObject.has("choices")) {
-                val choicesArray = jsonObject.getJSONArray("choices")
-                val firstChoice = choicesArray.getJSONObject(0)
-                if (firstChoice.has("delta")) {
-                    val deltaObject = firstChoice.getJSONObject("delta")
-                    return deltaObject.optString("content", null)
+        val trimmedLine = line.trim()
+        if (trimmedLine.isEmpty()) {
+            // Skip empty lines
+            return null
+        }
+
+        val jsonLine = if (trimmedLine.startsWith("data:")) {
+            trimmedLine.substringAfter("data:").trim()
+        } else {
+            trimmedLine
+        }
+        if (jsonLine.isEmpty()) {
+            // Skip empty lines after stripping
+            return null
+        }
+        if (jsonLine == "[DONE]") {
+            // Handle the end of the stream
+            // You can set a flag or simply return null
+            return null
+        }
+        // Check if jsonLine starts with '{' indicating a JSON object
+        if (jsonLine.startsWith("{")) {
+            try {
+                val jsonObject = JSONObject(jsonLine)
+                if (jsonObject.has("choices")) {
+                    val choicesArray = jsonObject.getJSONArray("choices")
+                    if (choicesArray.length() > 0) {
+                        val firstChoice = choicesArray.getJSONObject(0)
+                        if (firstChoice.has("delta")) {
+                            val deltaObject = firstChoice.getJSONObject("delta")
+                            return deltaObject.optString("content", null)
+                        } else if (firstChoice.has("message")) {
+                            // Handle the initial message if needed
+                            val messageObject = firstChoice.getJSONObject("message")
+                            return messageObject.optString("content", null)
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("GroqApiRequest", "Erro ao processar linha de stream: $jsonLine", e)
             }
-        } catch (e: Exception) {
-            Log.e("GroqApiRequest", "Erro ao processar linha de stream: $line", e)
+        } else {
+            // The line is not a JSON object; it might be an array or invalid JSON
+            Log.e("GroqApiRequest", "Linha não é um JSONObject: $jsonLine")
         }
         return null
     }
@@ -41,13 +72,13 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
 
         return try {
             val imageBase64 = convertBitMapToBase64(image)
-            // Configura o método e os cabeçalhos da requisição
+
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Authorization", "Bearer $apiKey")
             connection.doOutput = true
 
-            // Define o corpo da requisição com a imagem base64 no formato de URL embutida
+            // Defines the request body with the base64 image in the embedded url format
             val jsonBody = """
                 {
                     "messages": [
@@ -76,22 +107,21 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
                 }
             """.trimIndent()
 
-            // Envia o corpo da requisição
+            // Send the request body
             val outputStream: OutputStream = connection.outputStream
             outputStream.write(jsonBody.toByteArray(Charsets.UTF_8))
             outputStream.flush()
             outputStream.close()
 
-            // Lê a resposta como stream
+            // Read the response as a stream
             if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                 val responseBuilder = StringBuilder()
                 BufferedReader(InputStreamReader(connection.inputStream)).use { reader ->
                     reader.forEachLine { line ->
-                        // Processa cada linha recebida no stream
                         val content = processStreamLine(line)
                         if (content != null) {
                             responseBuilder.append(content)
-                            Log.d("GroqApiRequest", "Chunk recebido: $content")
+                            //Log.d("GroqApiRequest", "Chunk recebido: $content")
                         }
                     }
                 }

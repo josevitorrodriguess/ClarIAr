@@ -99,7 +99,7 @@ class MyAccessibilityService : AccessibilityService() {
             val source: AccessibilityNodeInfo? = event.source
             if (source != null) {
                 val className = source.className?.toString()
-                Log.d("MyAccessibilityService", "Clicked view class: $className")
+                //Log.d("MyAccessibilityService", "Clicked view class: $className")
                 if (className == "android.widget.ImageView" || className == "android.widget.Image") {
                     Log.d("MyAccessibilityService", "ImageView ou Image clicked.")
 
@@ -219,7 +219,7 @@ class MyAccessibilityService : AccessibilityService() {
         }
 
         try {
-            Log.d("MyAccessibilityService", "Starting image capture and processing.")
+            //Log.d("MyAccessibilityService", "Starting image capture and processing.")
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val metrics = DisplayMetrics()
             windowManager.defaultDisplay.getRealMetrics(metrics)
@@ -246,7 +246,7 @@ class MyAccessibilityService : AccessibilityService() {
             )
 
             imageReader.setOnImageAvailableListener({ reader ->
-                Log.d("MyAccessibilityService", "OnImageAvailableListener chamado")
+                //Log.d("MyAccessibilityService", "OnImageAvailableListener chamado")
                 val image = reader.acquireLatestImage()
                 if (image != null) {
                     try {
@@ -285,8 +285,8 @@ class MyAccessibilityService : AccessibilityService() {
                             Log.e("BitmapCreation", "Invalid dimensions for bitmap cropping.")
                             return@setOnImageAvailableListener
                         }
-                        Log.d("BitmapParams", "Bitmap dimensions: width=${bitmapWidth}, height=${bitmapHeight}")
-                        Log.d("BitmapParams", "Crop parameters: x=$x, y=$y, width=$width, height=$height")
+                        //Log.d("BitmapParams", "Bitmap dimensions: width=${bitmapWidth}, height=${bitmapHeight}")
+                        //Log.d("BitmapParams", "Crop parameters: x=$x, y=$y, width=$width, height=$height")
 
 
                         // Crop the bitmap to the bounds of the clicked view
