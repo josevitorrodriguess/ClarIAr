@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openAppSettings() {
-        // Intent para abrir as configurações do app
+        // Intent to open app settings
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = android.net.Uri.fromParts("package", packageName, null)
         }
@@ -54,7 +54,7 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Exibe a logo do app
+            // Displays the app logo
             Image(
                 painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = "ClarIAr logo",
@@ -64,11 +64,11 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
                     .padding(bottom = 12.dp) // Espaçamento abaixo da logo
             )
 
-            // Texto explicativo
+            // Explanatory text
             Text(text = "O app precisa de permissão para captura de tela.")
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botão para abrir as configurações
+            // Button to open settings
             Button(onClick = onNavigateToSettings) {
                 Text(text = "Abrir Configurações")
             }
