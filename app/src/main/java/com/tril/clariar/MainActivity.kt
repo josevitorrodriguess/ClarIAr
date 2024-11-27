@@ -1,8 +1,12 @@
 package com.tril.clariar
 
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.view.accessibility.AccessibilityManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,24 +27,49 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            ClarIArTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    PermissionsScreen(
-                        onNavigateToSettings = { openAppSettings() },
-                        modifier = Modifier.padding(innerPadding)
-                    )
+
+        // Check if the Accessibility Service is enabled
+        if (isAccessibilityServiceEnabled(this, MyAccessibilityService::class.java)) {
+            // If enabled, finish the activity as there's no need to show the permissions screen
+            finish()
+        } else {
+            // If not enabled, display the PermissionsScreen asking the user to enable the service
+            setContent {
+                ClarIArTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        PermissionsScreen(
+                            onNavigateToSettings = { openAccessibilitySettings() },
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
     }
 
-    private fun openAppSettings() {
-        // Intent to open app settings
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = android.net.Uri.fromParts("package", packageName, null)
-        }
+    // Function to open the device's Accessibility Settings
+    private fun openAccessibilitySettings() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         startActivity(intent)
+    }
+
+    // Function to check if the specified Accessibility Service is enabled
+    private fun isAccessibilityServiceEnabled(
+        context: Context, service: Class<out AccessibilityService>
+    ): Boolean {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices =
+            am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+        for (enabledService in enabledServices) {
+            val enabledServiceInfo = enabledService.resolveInfo.serviceInfo
+            if (enabledServiceInfo.packageName == context.packageName &&
+                enabledServiceInfo.name == service.name) {
+                // The service is enabled
+                return true
+            }
+        }
+        // The service is not enabled
+        return false
     }
 }
 
@@ -54,23 +83,24 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Displays the app logo
+
+            // Display the app logo
             Image(
                 painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = "ClarIAr logo",
                 modifier = Modifier
-                    .width(200.dp) // Define a largura
-                    .height(100.dp) // Define a altura
-                    .padding(bottom = 12.dp) // Espaçamento abaixo da logo
+                    .width(200.dp)
+                    .height(100.dp)
+                    .padding(bottom = 12.dp)
             )
 
-            // Explanatory text
-            Text(text = "O app precisa de permissão para captura de tela.")
+            // Explanatory text informing about the permission requirement
+            Text(text = "The app needs permission for screen capture.")
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Button to open settings
+            // Button that opens the Accessibility Settings when clicked
             Button(onClick = onNavigateToSettings) {
-                Text(text = "Abrir Configurações")
+                Text(text = "Open Settings")
             }
         }
     }
