@@ -53,6 +53,13 @@ class MyAccessibilityService : AccessibilityService() {
             showNotification()
         }
     }
+    private val mediaProjectionCallback = object : MediaProjection.Callback() {
+        override fun onStop() {
+            super.onStop()
+            //Free up resources such as virtual displays or image readers
+            Log.d("MyAccessibilityService", "MediaProjection foi interrompido")
+        }
+    }
 
     private lateinit var ttsHandler: TextToSpeechHandler
 
@@ -82,6 +89,8 @@ class MyAccessibilityService : AccessibilityService() {
         // Disable TextToSpeechHandler to free up resources
         ttsHandler.shutdown()
         super.onDestroy()
+        // Unregister the MediaProjection callback
+        mediaProjection?.unregisterCallback(mediaProjectionCallback)
         // Unregister any receiver
         unregisterReceiver(permissionGrantedReceiver)
     }
@@ -99,7 +108,7 @@ class MyAccessibilityService : AccessibilityService() {
             val source: AccessibilityNodeInfo? = event.source
             if (source != null) {
                 val className = source.className?.toString()
-                //Log.d("MyAccessibilityService", "Clicked view class: $className")
+                Log.d("MyAccessibilityService", "Clicked view class: $className")
                 if (className == "android.widget.ImageView" || className == "android.widget.Image") {
                     Log.d("MyAccessibilityService", "ImageView ou Image clicked.")
 
@@ -217,9 +226,11 @@ class MyAccessibilityService : AccessibilityService() {
         } else {
             Log.d("MyAccessibilityService", "mediaProjection initialized.")
         }
+        // register callback
+        mediaProjection?.registerCallback(mediaProjectionCallback, Handler(Looper.getMainLooper()))
 
         try {
-            //Log.d("MyAccessibilityService", "Starting image capture and processing.")
+            Log.d("MyAccessibilityService", "Starting image capture and processing.")
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val metrics = DisplayMetrics()
             windowManager.defaultDisplay.getRealMetrics(metrics)
@@ -233,6 +244,7 @@ class MyAccessibilityService : AccessibilityService() {
                 PixelFormat.RGBA_8888,
                 2
             )
+
 
             val virtualDisplay = mediaProjection!!.createVirtualDisplay(
                 "ScreenCapture",
