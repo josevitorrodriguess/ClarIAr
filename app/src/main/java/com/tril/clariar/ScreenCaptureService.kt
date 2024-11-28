@@ -39,7 +39,6 @@ class ScreenCaptureService : Service() {
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Clariar está capturando sua tela")
-            .setContentText("Toque para abrir o app")
             .setSmallIcon(R.drawable.iconwarning) //notification icon
             .setContentIntent(pendingIntent)
             .build()

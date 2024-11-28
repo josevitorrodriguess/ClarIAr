@@ -86,7 +86,7 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
 
             // Display the app logo
             Image(
-                painter = painterResource(id = R.drawable.app_logo),
+                painter = painterResource(id = R.drawable.app_logo_removebg),
                 contentDescription = "ClarIAr logo",
                 modifier = Modifier
                     .width(200.dp)
@@ -95,12 +95,12 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
             )
 
             // Explanatory text informing about the permission requirement
-            Text(text = "The app needs permission for screen capture.")
+            Text(text = "O clarIAr precisa de permissão para captura de tela")
             Spacer(modifier = Modifier.height(16.dp))
 
             // Button that opens the Accessibility Settings when clicked
             Button(onClick = onNavigateToSettings) {
-                Text(text = "Open Settings")
+                Text(text = "Abrir configurações")
             }
         }
     }
