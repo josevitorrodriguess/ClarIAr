@@ -1,14 +1,15 @@
 package com.tril.clariar.http
-
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import com.tril.clariar.TextToSpeechHandler
 import org.json.JSONObject
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 
-class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
+class GroqApiRequest(private val apiKey: String, private val image: Bitmap, private val ttsHandler: TextToSpeechHandler) {
 
     private fun convertBitMapToBase64(image: Bitmap): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
@@ -66,7 +67,9 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
         val url = URL("https://api.groq.com/openai/v1/chat/completions")
         val connection = url.openConnection() as HttpURLConnection
 
+        ttsHandler.speak("Por favor, aguarde. Estamos processando a descrição da imagem.")
         return try {
+
             val imageBase64 = convertBitMapToBase64(image)
 
             connection.requestMethod = "POST"
@@ -126,6 +129,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap) {
                 BufferedReader(InputStreamReader(connection.errorStream)).use {
                     val errorResponse = it.readText()
                     Log.e("GroqApiRequest", "Erro na resposta: $errorResponse")
+                    ttsHandler.speak("Não foi possível descrever a image!")
                     return null
                 }
             }

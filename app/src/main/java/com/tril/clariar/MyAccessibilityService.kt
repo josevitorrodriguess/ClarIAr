@@ -57,7 +57,7 @@ class MyAccessibilityService : AccessibilityService() {
         override fun onStop() {
             super.onStop()
             //Free up resources such as virtual displays or image readers
-            Log.d("MyAccessibilityService", "MediaProjection foi interrompido")
+            //Log.d("MyAccessibilityService", "MediaProjection has been stopped")
         }
     }
 
@@ -109,14 +109,15 @@ class MyAccessibilityService : AccessibilityService() {
             if (source != null) {
                 val className = source.className?.toString()
                 Log.d("MyAccessibilityService", "Clicked view class: $className")
+
                 if (className == "android.widget.ImageView" || className == "android.widget.Image") {
-                    Log.d("MyAccessibilityService", "ImageView ou Image clicked.")
+                    Log.d("MyAccessibilityService", "ImageView or Image clicked.")
 
                     // Check if TTS is speaking
                     if (ttsHandler.isSpeaking()) {
                         // Interrupts TTS
                         ttsHandler.stop()
-                        Log.d("MyAccessibilityService", "TTS interrompido pelo usuário.")
+                        Log.d("MyAccessibilityService", "TTS interrupted by user.")
                     } else {
                         // Proceed to capture and process the image
                         val rect = Rect()
@@ -138,8 +139,6 @@ class MyAccessibilityService : AccessibilityService() {
 
     // Create the notification channel for Android O and above
     private fun createNotificationChannel() {
-        // Create the notification channel only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Screen Capture"
             val descriptionText = "Notifications for screen capture permission"
@@ -230,7 +229,7 @@ class MyAccessibilityService : AccessibilityService() {
         mediaProjection?.registerCallback(mediaProjectionCallback, Handler(Looper.getMainLooper()))
 
         try {
-            Log.d("MyAccessibilityService", "Starting image capture and processing.")
+            //Log.d("MyAccessibilityService", "Starting image capture and processing.")
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val metrics = DisplayMetrics()
             windowManager.defaultDisplay.getRealMetrics(metrics)
@@ -294,7 +293,7 @@ class MyAccessibilityService : AccessibilityService() {
                         // Ensure width and height are positive
                         if (width <= 0 || height <= 0) {
                             // Handle the error case
-                            Log.e("BitmapCreation", "Invalid dimensions for bitmap cropping.")
+                            //Log.e("BitmapCreation", "Invalid dimensions for bitmap cropping.")
                             return@setOnImageAvailableListener
                         }
                         //Log.d("BitmapParams", "Bitmap dimensions: width=${bitmapWidth}, height=${bitmapHeight}")
@@ -327,7 +326,7 @@ class MyAccessibilityService : AccessibilityService() {
                                 if (descriptiveText != null) {
                                     // Registers the descriptive text
                                     val cleanedText = descriptiveText.replace("\\s+".toRegex(), " ").trim()
-                                    Log.d("MyAccessibilityService", "Texto Descritivo: $cleanedText")
+                                    Log.d("MyAccessibilityService", "Descriptive Text: $cleanedText")
 
 
                                     withContext(Dispatchers.Main) {
@@ -336,25 +335,25 @@ class MyAccessibilityService : AccessibilityService() {
 
                                 } else {
                                     // handles the case when descriptiveText is null
-                                    Log.e("MyAccessibilityService", "Falha ao obter texto descritivo do modelo LLM")
+                                    Log.e("MyAccessibilityService", "Failed to get descriptive text from LLM model")
 
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(applicationContext, "Falha ao obter descrição da imagem.", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(applicationContext, "Failed to get image description.", Toast.LENGTH_LONG).show()
                                     }
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                                 // Handle exceptions appropriately
                                 withContext(Dispatchers.Main) {
-                                    Toast.makeText(applicationContext, "Ocorreu um erro.", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(applicationContext, "An error occurred.", Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
 
-                        // After use, clean the bitmap if necessary.
+                        // After use, clean the bitmap .
                         // ImageStorage.clearCapturedBitmap()
 
-                        Log.d("MyAccessibilityService", "Bitmap stored in ImageStorage")
+                        //Log.d("MyAccessibilityService", "Bitmap stored in ImageStorage")
 
                         // Clear the original bitmap
                         bitmap.recycle()
@@ -362,7 +361,7 @@ class MyAccessibilityService : AccessibilityService() {
                         // Do not recycle the croppedBitmap here as it needs to be accessed later
 
                     } catch (e: Exception) {
-                        Log.e("MyAccessibilityService", "Erro durante o processamento da imagem", e)
+                        Log.e("MyAccessibilityService", "Error while processing image", e)
                         e.printStackTrace()
                     } finally {
                         image.close()
