@@ -317,7 +317,7 @@ class MyAccessibilityService : AccessibilityService() {
                                 val apiKey = getString(R.string.api_key)
 
                                 // Creates a GroqApiRequest instance with the API key and the captured image
-                                val groqApiRequest = GroqApiRequest(apiKey, croppedBitmap)
+                                val groqApiRequest = GroqApiRequest(apiKey, croppedBitmap, ttsHandler)
 
                                 // Send the image to the LLM model and get the descriptive text
                                 val descriptiveText = groqApiRequest.sendChatRequest()
