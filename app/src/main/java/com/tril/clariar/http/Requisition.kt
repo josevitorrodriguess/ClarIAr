@@ -130,7 +130,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap, priv
                 BufferedReader(InputStreamReader(connection.errorStream)).use {
                     val errorResponse = it.readText()
                     Log.e("GroqApiRequest", "Erro na resposta: $errorResponse")
-                    ttsHandler.speak("Não foi possível descrever a image!")
+                    ttsHandler.speak("Não foi possível descrever a imagem!")
                     return null
                 }
             }

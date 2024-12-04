@@ -119,10 +119,17 @@ class MyAccessibilityService : AccessibilityService() {
                         ttsHandler.stop()
                         Log.d("MyAccessibilityService", "TTS interrupted by user.")
                     } else {
-                        // Proceed to capture and process the image
+                        // Provide immediate auditory feedback
+                        ttsHandler.speak("Processando imagem, por favor aguarde.")
+
+                        // Proceed to capture and process the image in the background
                         val rect = Rect()
                         source.getBoundsInScreen(rect)
-                        captureAndProcessImage(rect)
+
+                        // Start the capture and processing in a coroutine
+                        CoroutineScope(Dispatchers.Default).launch {
+                            captureAndProcessImage(rect)
+                        }
                     }
                 } else {
                     Log.d("MyAccessibilityService", "Event is not from an ImageView or Image")

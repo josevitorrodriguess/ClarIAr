@@ -20,7 +20,10 @@ class TextToSpeechHandler(context: Context) : TextToSpeech.OnInitListener {
             val result = tts?.setLanguage(Locale("pt", "BR"))
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "Linguagem não suportada")
+            }else {
+                tts?.setSpeechRate(1.2f)
             }
+
         } else {
             Log.e("TTS", "Inicialização falhou")
         }
