@@ -1,4 +1,5 @@
 package com.tril.clariar.http
+import com.tril.clariar.AudioUtils
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
@@ -67,9 +68,9 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap, priv
         val url = URL("https://api.groq.com/openai/v1/chat/completions")
         val connection = url.openConnection() as HttpURLConnection
 
-        ttsHandler.speak("Por favor, aguarde. Estamos processando a descrição da imagem.")
         return try {
 
+            AudioUtils().bipSong()
             val imageBase64 = convertBitMapToBase64(image)
 
             connection.requestMethod = "POST"
