@@ -128,7 +128,7 @@ fun WelcomeScreen(onHowToUseClick: () -> Unit, modifier: Modifier = Modifier) {
 
             Button(
                 onClick = onHowToUseClick,
-                modifier = Modifier.width(220.dp)
+                modifier = Modifier.width(180.dp)
             ) {
                 Text(text = "Como usar o ClarIAr")
             }
@@ -190,8 +190,7 @@ fun HowToUseScreen(onNavigateToPermissions: () -> Unit, modifier: Modifier = Mod
 
             Button(
                 onClick = onNavigateToPermissions,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.width(220.dp)
                     .padding(horizontal = 16.dp)
                     .height(48.dp)
             ) {
@@ -288,8 +287,8 @@ fun PermissionsScreen(onNavigateToSettings: () -> Unit, modifier: Modifier = Mod
                 Button(
                     onClick = onNavigateToSettings,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .width(200.dp)
                         .height(48.dp)
                 ) {
                     Text(text = "Abrir Configurações")
