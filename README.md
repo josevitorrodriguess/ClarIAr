@@ -1,5 +1,5 @@
 # ClarIAr Project
-Project for TRILHA Hackathon
+Project made for Trilha's Hackathon and for all visually impaired people!
 
 ![Project Image](https://github.com/user-attachments/assets/815a6932-89bd-42b0-a0a5-32ef5da0cd48)
 
@@ -43,6 +43,8 @@ ClarIAr is a feature created to upgrade the functionality of TalkBack, improving
 1. Launch the created virtual device
 2. Open the project in Android Studio
 3. Click "Run" (green play button)
+4. (Make sure your computer Virtualization* is on)
+> *Virtualization: can be turned on in your PC's BIOS settings
 
 #### Using physical device
 1. Enable Developer Options on your Android phone
