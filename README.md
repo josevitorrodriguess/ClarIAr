@@ -8,8 +8,6 @@ Project for Tril Lab's Hackathon
 - José Rodrigues
 - Luís Aranha
 
-![image](https://github.com/user-attachments/assets/0f9ab38d-a84f-4f4c-a49f-52dbc3cec14f)
-
 ## What is it about?
 
 ClarIAr is a feature feature created to upgrade the functionality of TalkBack, improving the experience for visually impaired users in Android smartphones. 
