@@ -87,7 +87,7 @@ class GroqApiRequest(private val apiKey: String, private val image: Bitmap, priv
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Descreva brevemente esta imagem para um deficiente visual em no máximo 5 frases. Seja objetivo, direto e humano. Foque nos elementos principais sem se prolongar. Não se apresente!"
+                                    "text": "Descreva brevemente esta imagem para um deficiente visual em no máximo 5 frases. Seja objetivo, direto e humano. Foque nos elementos principais sem se prolongar. Não se apresente e parta diretamente para a descrição!"
                                 },
                                 {
                                     "type": "image_url",

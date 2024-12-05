@@ -95,6 +95,9 @@ class MyAccessibilityService : AccessibilityService() {
         unregisterReceiver(permissionGrantedReceiver)
     }
 
+    private fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -118,9 +121,11 @@ class MyAccessibilityService : AccessibilityService() {
                         // Interrupts TTS
                         ttsHandler.stop()
                         Log.d("MyAccessibilityService", "TTS interrupted by user.")
+                        showToast(this, "Descrição interrompida.")
                     } else {
                         // Provide immediate auditory feedback
                         ttsHandler.speak("Processando imagem, por favor aguarde.")
+                        showToast(this, "Processando imagem.")
 
                         // Proceed to capture and process the image in the background
                         val rect = Rect()
