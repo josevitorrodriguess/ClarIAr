@@ -71,15 +71,14 @@ class MyAccessibilityService : AccessibilityService() {
 
         // Register the receiver
         val filter = IntentFilter("com.tril.clariar.PERMISSION_GRANTED")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 or higher
-            registerReceiver(
-                permissionGrantedReceiver,
-                filter,
-                Context.RECEIVER_NOT_EXPORTED
-            )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(permissionGrantedReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
-            registerReceiver(permissionGrantedReceiver, filter, RECEIVER_NOT_EXPORTED)
+            @Suppress("DEPRECATION")
+            registerReceiver(permissionGrantedReceiver, filter)
         }
+
 
         // Create the notification channel
         createNotificationChannel()
@@ -326,7 +325,7 @@ class MyAccessibilityService : AccessibilityService() {
                         // Starts a Coroutine to send the image and get the descriptive text
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
-                                val apiKey = getString(R.string.api_key)
+                                val apiKey = getString(R.string.groq_api_key)
 
                                 // Creates a GroqApiRequest instance with the API key and the captured image
                                 val groqApiRequest = GroqApiRequest(apiKey, croppedBitmap, ttsHandler)
